@@ -3,6 +3,10 @@ package org.apache.bookkeeper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.apache.bookkeeper.bookie.LedgerStorage;
+import org.apache.bookkeeper.meta.LedgerManager;
+import org.apache.bookkeeper.stats.StatsLogger;
+import org.apache.bookkeeper.bookie.ScanAndCompareGarbageCollector;
 
 import java.util.*;
 
