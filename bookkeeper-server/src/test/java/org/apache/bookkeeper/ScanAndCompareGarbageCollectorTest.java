@@ -4,9 +4,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.apache.bookkeeper.bookie.LedgerStorage;
-import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.bookkeeper.bookie.ScanAndCompareGarbageCollector;
+
+import org.apache.bookkeeper.meta.LedgerManager;
+import org.apache.bookkeeper.meta.LedgerManager.LedgerRange;
+import org.apache.bookkeeper.meta.LedgerManager.LedgerRangeIterator;
+import org.apache.bookkeeper.bookie.GarbageCleaner;
+import org.apache.bookkeeper.util.SnapshotMap;
+
+import static org.mockito.Mockito.*;
+
 
 import java.util.*;
 
@@ -28,19 +36,61 @@ public class ScanAndCompareGarbageCollectorTest {
     }
 
     @Test
-    public void testGarbageCollectionRemovesOnlyUnusedLedgers() throws Exception {
-        when(ledgerStorage.getActiveLedgers()).thenReturn(Set.of(1L, 2L));
+    public void shouldCleanLocalLedgersNotInGlobalList() {
+        // ledger attivi localmente: [1, 2]
+        NavigableMap<Long, Boolean> localLedgers = new TreeMap<>();
+        localLedgers.put(1L, true);
+        localLedgers.put(2L, true);
 
-        LedgerManager.LedgerRange range = new LedgerManager.LedgerRange(1L, 3L);
-        Enumeration<LedgerManager.LedgerRange> ranges = Collections.enumeration(List.of(range));
-        when(ledgerManager.getLedgerRanges()).thenReturn(ranges);
+        SnapshotMap<Long, Boolean> snapshotMap = mock(SnapshotMap.class);
+        when(snapshotMap.snapshot()).thenReturn(localLedgers);
 
-        doNothing().when(ledgerManager).removeLedger(anyLong());
+        LedgerManager ledgerManager = mock(LedgerManager.class);
 
-        gc.doGc();
+        // ledger globali (da zookeeper): [1]
+        LedgerRange globalRange = new LedgerRange(1L, 2L);  // include solo ledger 1
+        LedgerRangeIterator iterator = mock(LedgerRangeIterator.class);
+        when(iterator.hasNext()).thenReturn(true, false);
+        when(iterator.next()).thenReturn(globalRange);
+        when(ledgerManager.getLedgerRanges()).thenReturn(iterator);
 
-        verify(ledgerManager, times(1)).removeLedger(3L);
-        verify(ledgerManager, never()).removeLedger(1L);
-        verify(ledgerManager, never()).removeLedger(2L);
+        // cleaner che registra i ledger puliti
+        GarbageCleaner cleaner = mock(GarbageCleaner.class);
+
+        ScanAndCompareGarbageCollector gc =
+            new ScanAndCompareGarbageCollector(ledgerManager, snapshotMap);
+
+        gc.gc(cleaner);
+
+        verify(cleaner, times(1)).clean(2L);  // solo ledger 2 deve essere rimosso
+        verify(cleaner, never()).clean(1L);
     }
+
+    @Test
+    public void shouldCleanAllWhenGlobalLedgersIsEmpty() {
+        NavigableMap<Long, Boolean> localLedgers = new TreeMap<>();
+        localLedgers.put(10L, true);
+        localLedgers.put(20L, true);
+
+        SnapshotMap<Long, Boolean> snapshotMap = mock(SnapshotMap.class);
+        when(snapshotMap.snapshot()).thenReturn(localLedgers);
+
+        LedgerManager ledgerManager = mock(LedgerManager.class);
+        LedgerRangeIterator iterator = mock(LedgerRangeIterator.class);
+
+        // non ci sono ledger globali
+        when(iterator.hasNext()).thenReturn(false);
+        when(ledgerManager.getLedgerRanges()).thenReturn(iterator);
+
+        GarbageCleaner cleaner = mock(GarbageCleaner.class);
+
+        ScanAndCompareGarbageCollector gc =
+            new ScanAndCompareGarbageCollector(ledgerManager, snapshotMap);
+
+        gc.gc(cleaner);
+
+        verify(cleaner).clean(10L);
+        verify(cleaner).clean(20L);
+    }
+
 }
