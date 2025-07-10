@@ -66,8 +66,18 @@ public class ScanAndCompareGarbageCollectorTest {
         verify(cleaner, never()).clean(1L);
     }
 
+    
+
     @Test
     public void shouldCleanAllWhenGlobalLedgersIsEmpty() {
+  
+           GarbageCleaner cleaner = new GarbageCleaner() {
+        @Override
+        public void clean(long ledgerId) {
+            System.out.println("Cleaned ledger: " + ledgerId);
+        }
+    };
+    
         NavigableMap<Long, Boolean> localLedgers = new TreeMap<>();
         localLedgers.put(10L, true);
         localLedgers.put(20L, true);
