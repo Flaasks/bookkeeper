@@ -99,9 +99,68 @@
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>4.11.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
+      <!-- Surefire: esegue i test -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.12</version>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+        <configuration>
+          <!-- qui JaCoCo inietta l'agent -->
+          <!--suppress UnresolvedMavenProperty -->
+          <argLine>${argLine}</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.15.0</version>
+        <configuration>
+          <!-- package da analizzare -->
+          <targetClasses>
+            <param>org.apache.bookkeeper.common.concurrent.*</param>
+          </targetClasses>
+          <!-- i test corrispondenti -->
+          <targetTests>
+            <param>org.apache.bookkeeper.common.concurrent.*Test</param>
+          </targetTests>
+          <reportsDirectory>${project.build.directory}/pit-reports</reportsDirectory>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
