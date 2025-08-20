@@ -1,8 +1,6 @@
 package org.apache.bookkeeper.common.util;
 
-import com.google.common.util.concurrent.ListenableScheduledFuture;
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

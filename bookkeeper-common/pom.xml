@@ -160,6 +160,27 @@
           <reportsDirectory>${project.build.directory}/pit-reports</reportsDirectory>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.15.0</version>
+        <configuration>
+          <!-- Classi target da mutare -->
+          <targetClasses>
+            <param>org.apache.bookkeeper.common.collections.BatchedArrayBlockingQueue*</param>
+            <param>org.apache.bookkeeper.common.util.BoundedScheduledExecutorService*</param>
+          </targetClasses>
+
+          <!-- Package dove PIT deve cercare i test -->
+          <targetTests>
+            <param>org.apache.bookkeeper.common.collections.*</param>
+            <param>org.apache.bookkeeper.common.util.*</param>
+          </targetTests>
+
+          <reportsDirectory>${project.build.directory}/pit-reports</reportsDirectory>
+        </configuration>
+      </plugin>
+
 
       <plugin>
         <groupId>com.github.spotbugs</groupId>

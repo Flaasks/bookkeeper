@@ -1,6 +1,6 @@
 package org.apache.bookkeeper.common.util;
 
-import com.google.common.util.concurrent.ListenableScheduledFuture;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
