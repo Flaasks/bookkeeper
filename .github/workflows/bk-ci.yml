@@ -26,13 +26,19 @@ jobs:
       - name: Set JVM flag for classpath check
         run: echo "JAVA_TOOL_OPTIONS=-Djdk.net.URLClassPath.disableClassPathURLCheck=true" >> $GITHUB_ENV
 
-      - name: Test (bookkeeper-common)
+      - name: Test (bookkeeper-common, 1 fork)
+        env:
+          JAVA_TOOL_OPTIONS: -Djdk.net.URLClassPath.disableClassPathURLCheck=true
         run: |
-          mvn -B -U -e -fae \
+          mvn -B -U -e \
             -pl bookkeeper-common -am \
             -DforkCount=1 -DreuseForks=false \
             -Dsurefire.useManifestOnlyJar=false \
+            -Dsurefire.useModulePath=false \
+            -Dsurefire.useSystemClassLoader=false \
+            -Dsurefire.systemPropertyVariables.jdk.net.URLClassPath.disableClassPathURLCheck=true \
             -DtrimStackTrace=false -Dsurefire.printSummary=true \
             test
+      
       
       
