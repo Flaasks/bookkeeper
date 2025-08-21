@@ -22,3 +22,7 @@ jobs:
 
       - name: Build with Maven (skip license & style checks)
         run: mvn clean verify -Pskip-checks
+
+      - name: Test
+        run: mvn -B -U -DtrimStackTrace=false -Dsurefire.printSummary=true \
+          -DargLine="-Djdk.net.URLClassPath.disableClassPathURLCheck=true" test
