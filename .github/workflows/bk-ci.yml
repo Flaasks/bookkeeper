@@ -20,13 +20,12 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build and Test
+      - name: Build & Test (bookkeeper-common)
         run: |
-          if [ -x ./mvnw ]; then
-            ./mvnw -B -U -fae -DtrimStackTrace=false -Dsurefire.printSummary=true test
-          else
-            mvn -B -U -fae -DtrimStackTrace=false -Dsurefire.printSummary=true test
-          fi
+          mvn -B -U -fae \
+            -pl bookkeeper-common -am \
+            -DtrimStackTrace=false -Dsurefire.printSummary=true \
+            test
 
       # Carica i report come artifact (sempre)
       - name: Upload Surefire reports
