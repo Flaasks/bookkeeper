@@ -20,6 +20,7 @@
 package org.apache.bookkeeper.common.util;
 
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,13 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+
+import org.junit.After;
+
 /**
  * Test Control-Flow per BoundedScheduledExecutorService
  */
@@ -44,10 +52,24 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
 
     @Mock
     private BlockingQueue<Runnable> mockQueue;
+    private ScheduledExecutorService executor;
+
+    @Before
+    public void setUpExecutor() {
+        executor = Executors.newSingleThreadScheduledExecutor();
+    }
 
     @Before
     public void setUp() {
         when(mockExecutor.getQueue()).thenReturn(mockQueue);
+    }
+
+    @After
+    public void tearDownExecutor() throws InterruptedException {
+        if (executor != null) {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
     }
 
     /**

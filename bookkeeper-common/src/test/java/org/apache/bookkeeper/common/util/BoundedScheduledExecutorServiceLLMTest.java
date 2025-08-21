@@ -20,6 +20,7 @@
 package org.apache.bookkeeper.common.util;
 
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.After;
 
 /**
  * Test generati tramite LLM per BoundedScheduledExecutorService
@@ -48,11 +55,26 @@ public class BoundedScheduledExecutorServiceLLMTest {
     private BlockingQueue<Runnable> mockQueue;
 
     private BoundedScheduledExecutorService boundedService;
+    private ScheduledExecutorService executor;
+
+    @Before
+    public void setUpExecutor() {
+        executor = Executors.newSingleThreadScheduledExecutor();
+    }
 
     @Before
     public void setUp() {
         when(mockExecutor.getQueue()).thenReturn(mockQueue);
     }
+
+    @After
+    public void tearDownExecutor() throws InterruptedException {
+        if (executor != null) {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
+    }
+
 
     /**
      * LLM-TEST-1: Bug Detection - scheduleWithFixedDelay chiama metodo sbagliato

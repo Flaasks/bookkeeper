@@ -19,6 +19,7 @@
 
 package org.apache.bookkeeper.common.util;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.*;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.After;
+
 /**
  * Test di alta qualità per BoundedScheduledExecutorService.
  * I test sono stati migliorati per coprire i casi limite e prevenire blocchi,
@@ -52,10 +59,26 @@ public class BoundedScheduledExecutorServiceMockTest {
 
     private BoundedScheduledExecutorService boundedService;
 
+    private ScheduledExecutorService executor;
+
+    @Before
+    public void setUpExecutor() {
+        executor = Executors.newSingleThreadScheduledExecutor();
+    }
+
+
     @Before
     public void setUp() {
         when(mockExecutor.getQueue()).thenReturn(mockQueue);
         boundedService = new BoundedScheduledExecutorService(mockExecutor, 10);
+    }
+
+    @After
+    public void tearDownExecutor() throws InterruptedException {
+        if (executor != null) {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
     }
 
     /**
