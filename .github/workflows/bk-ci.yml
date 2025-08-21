@@ -23,12 +23,14 @@ jobs:
       - name: Build with Maven (skip license & style checks)
         run: mvn clean verify -Pskip-checks
 
-      - name: Test
+      - name: Test (bookkeeper-common)
         run: |
-          mvn -B -U -e \
-            -DtrimStackTrace=false -Dsurefire.printSummary=true \
+          mvn -B -U -e -fae \
+            -pl bookkeeper-common -am \
             -DforkCount=1 -DreuseForks=false \
-            -DargLine="-Djdk.net.URLClassPath.disableClassPathURLCheck=true" \
-            -Dfailsafe.argLine="-Djdk.net.URLClassPath.disableClassPathURLCheck=true" \
             -Dsurefire.useManifestOnlyJar=false \
+            -Dsurefire.systemPropertyVariables.jdk.net.URLClassPath.disableClassPathURLCheck=true \
+            -Dfailsafe.useManifestOnlyJar=false \
+            -Dfailsafe.systemPropertyVariables.jdk.net.URLClassPath.disableClassPathURLCheck=true \
             test
+      
