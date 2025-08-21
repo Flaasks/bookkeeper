@@ -24,5 +24,11 @@ jobs:
         run: mvn clean verify -Pskip-checks
 
       - name: Test
-        run: mvn -B -U -DtrimStackTrace=false -Dsurefire.printSummary=true \
-          -DargLine="-Djdk.net.URLClassPath.disableClassPathURLCheck=true" test
+        run: |
+          mvn -B -U -e \
+            -DtrimStackTrace=false -Dsurefire.printSummary=true \
+            -DforkCount=1 -DreuseForks=false \
+            -DargLine="-Djdk.net.URLClassPath.disableClassPathURLCheck=true" \
+            -Dfailsafe.argLine="-Djdk.net.URLClassPath.disableClassPathURLCheck=true" \
+            -Dsurefire.useManifestOnlyJar=false \
+            test
