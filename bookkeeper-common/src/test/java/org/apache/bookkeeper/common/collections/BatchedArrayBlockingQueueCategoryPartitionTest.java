@@ -20,6 +20,8 @@
 package org.apache.bookkeeper.common.collections;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -155,6 +157,17 @@ public class BatchedArrayBlockingQueueCategoryPartitionTest {
             // Se null non è accettato, è corretto
             assertFalse("Se NPE lanciata, offer dovrebbe ritornare false", nullAccepted);
             assertEquals("Queue non accetta null, size dovrebbe rimanere 4", 4, queue.size());
+        }
+    }
+
+    @Test
+    @Category(org.apache.bookkeeper.common.testing.KnownBugTest.class)
+    public void constructor_shouldRejectZeroCapacity() {
+        try {
+            new BatchedArrayBlockingQueue<>(0);
+            fail("Known bug: capacity==0 should throw IllegalArgumentException");
+        } catch (IllegalArgumentException expected) {
+            // test passed
         }
     }
 }

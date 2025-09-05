@@ -20,6 +20,8 @@
 package org.apache.bookkeeper.common.collections;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -262,5 +264,14 @@ public class BatchedArrayBlockingQueueControlFlowTest {
         // Dopo clear
         queue.clear();
         assertEquals(4, queue.remainingCapacity());
+    }
+
+    @Test
+    @Category(org.apache.bookkeeper.common.testing.KnownBugTest.class)
+    public void offer_shouldReturnFalseWhenQueueIsFull_insteadOfBlockingOrThrowing() throws Exception {
+        BatchedArrayBlockingQueue<Integer> q = new BatchedArrayBlockingQueue<>(1);
+        assertTrue("Precondition: first offer should succeed", q.offer(1));
+        // Quando piena, l’implementazione corretta deve restituire false.
+        assertFalse("Known bug: offer on full queue should return false (non-blocking)", q.offer(2));
     }
 }

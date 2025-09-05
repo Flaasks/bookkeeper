@@ -26,6 +26,8 @@ jobs:
             -pl bookkeeper-common -am \
             -DtrimStackTrace=false -Dsurefire.printSummary=true \
             test
+          
+      
 
       # Carica i report come artifact (sempre)
       - name: Upload Surefire reports
@@ -39,4 +41,14 @@ jobs:
             **/*.dump
             **/*.dumpstream      
       
-      
+
+      # === APPEND: PIT mutation testing (stable suite) ===
+      - name: PIT (stable suite)
+        run: mvn -B test-compile org.pitest:pitest-maven:mutationCoverage
+
+      - name: Upload PIT reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pit-reports
+          path: '**/target/pit-reports/**'

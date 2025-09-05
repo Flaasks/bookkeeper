@@ -20,6 +20,8 @@
 package org.apache.bookkeeper.common.collections;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
 import java.util.*;
 import java.util.concurrent.*;
 import static org.junit.Assert.*;
@@ -216,5 +218,17 @@ public class BatchedArrayBlockingQueueLLMGeneratedTest {
         queue.clear();
         assertEquals("Queue dovrebbe essere vuota dopo clear", 0, queue.size());
         assertTrue("isEmpty dovrebbe ritornare true", queue.isEmpty());
+    }
+
+    @Test
+    @Category(org.apache.bookkeeper.common.testing.KnownBugTest.class)
+    public void put_shouldRejectNullElements() throws Exception {
+        BatchedArrayBlockingQueue<String> q = new BatchedArrayBlockingQueue<>(2);
+        try {
+            q.put(null);
+            fail("Known bug: put(null) should throw NullPointerException");
+        } catch (NullPointerException expected) {
+            // test passed
+        }
     }
 }
