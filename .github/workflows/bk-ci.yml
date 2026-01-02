@@ -44,6 +44,42 @@ jobs:
                 <mirrorOf>central</mirrorOf>
               </mirror>
             </mirrors>
+            <profiles>
+              <profile>
+                <id>apache-snapshots</id>
+                <repositories>
+                  <repository>
+                    <id>apache.snapshots</id>
+                    <url>https://repository.apache.org/snapshots</url>
+                    <releases><enabled>false</enabled></releases>
+                    <snapshots><enabled>true</enabled><updatePolicy>always</updatePolicy></snapshots>
+                  </repository>
+                  <repository>
+                    <id>central</id>
+                    <url>https://repo1.maven.org/maven2/</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>false</enabled></snapshots>
+                  </repository>
+                </repositories>
+                <pluginRepositories>
+                  <pluginRepository>
+                    <id>apache.snapshots</id>
+                    <url>https://repository.apache.org/snapshots</url>
+                    <releases><enabled>false</enabled></releases>
+                    <snapshots><enabled>true</enabled><updatePolicy>always</updatePolicy></snapshots>
+                  </pluginRepository>
+                  <pluginRepository>
+                    <id>central</id>
+                    <url>https://repo1.maven.org/maven2/</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>false</enabled></snapshots>
+                  </pluginRepository>
+                </pluginRepositories>
+              </profile>
+            </profiles>
+            <activeProfiles>
+              <activeProfile>apache-snapshots</activeProfile>
+            </activeProfiles>
           </settings>
           EOF
 
