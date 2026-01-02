@@ -77,8 +77,8 @@ jobs:
           name: jacoco-reports
           path: |
             bookkeeper-common/target/site/jacoco/**
-                    if-no-files-found: warn
           retention-days: 7
+          if-no-files-found: warn
 
       - name: Upload PiTest mutation reports
         if: always()
@@ -87,8 +87,8 @@ jobs:
           name: pitest-reports
           path: |
             bookkeeper-common/target/pit-reports/**
-                    if-no-files-found: warn
           retention-days: 7
+          if-no-files-found: warn
 
       # Pubblica risultati test come commento (solo per PR)
       - name: Publish test results
