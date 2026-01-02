@@ -31,6 +31,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Configure Maven mirror
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<'EOF'
+          <settings>
+            <mirrors>
+              <mirror>
+                <id>central</id>
+                <name>Maven Central</name>
+                <url>https://repo1.maven.org/maven2/</url>
+                <mirrorOf>central</mirrorOf>
+              </mirror>
+            </mirrors>
+          </settings>
+          EOF
+
       - name: Build and compile
         run: |
           mvn -B -pl bookkeeper-common -am clean compile test-compile
