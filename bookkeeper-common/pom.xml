@@ -143,8 +143,6 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
         <configuration>
-          <!--suppress UnresolvedMavenProperty -->
-          <argLine>${argLine}</argLine>
           <excludedGroups>${known.bug.group}</excludedGroups>
           <testFailureIgnore>true</testFailureIgnore>
         </configuration>
@@ -170,6 +168,15 @@
           <reportsDirectory>${project.build.directory}/pit-reports</reportsDirectory>
 
           <excludedGroups>${known.bug.group}</excludedGroups>
+
+          <!-- Override JVM args to avoid argLine issues -->
+          <jvmArgs>
+            <value>-Xmx1024m</value>
+            <value>-Dnet.bytebuddy.experimental=true</value>
+          </jvmArgs>
+
+          <!-- Use empty argLine -->
+          <useAdditionalClasspathElements>false</useAdditionalClasspathElements>
 
         </configuration>
       </plugin>

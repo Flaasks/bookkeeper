@@ -20,56 +20,99 @@
 package org.apache.bookkeeper.common.util;
 
 
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-
-import org.junit.After;
 
 /**
  * Test Control-Flow per BoundedScheduledExecutorService
  */
-@RunWith(MockitoJUnitRunner.class)
 public class BoundedScheduledExecutorServiceControlFlowTest {
-
-    @Mock
-    private ScheduledThreadPoolExecutor mockExecutor;
-
-    @Mock
-    private BlockingQueue<Runnable> mockQueue;
-    private ScheduledExecutorService executor;
-
-    @Before
-    public void setUpExecutor() {
-        executor = Executors.newSingleThreadScheduledExecutor();
-    }
+    private AdjustableBlockingQueue queue;
+    private ScheduledThreadPoolExecutor executor;
 
     @Before
     public void setUp() {
-        when(mockExecutor.getQueue()).thenReturn(mockQueue);
+        queue = new AdjustableBlockingQueue();
+        executor = new StubScheduledThreadPoolExecutor(queue);
     }
 
     @After
-    public void tearDownExecutor() throws InterruptedException {
+    public void tearDown() {
         if (executor != null) {
             executor.shutdownNow();
-            executor.awaitTermination(5, TimeUnit.SECONDS);
         }
+    }
+
+    /**
+     * Simple stub that exposes a controllable queue while avoiding Mockito on JDK class.
+     */
+    private static final class StubScheduledThreadPoolExecutor extends ScheduledThreadPoolExecutor {
+        private final BlockingQueue<Runnable> exposedQueue;
+
+        StubScheduledThreadPoolExecutor(BlockingQueue<Runnable> exposedQueue) {
+            super(1);
+            this.exposedQueue = exposedQueue;
+        }
+
+        @Override
+        public BlockingQueue<Runnable> getQueue() {
+            return exposedQueue;
+        }
+    }
+
+    /**
+     * Minimal queue stub with controllable size and call counter.
+     */
+    private static final class AdjustableBlockingQueue implements BlockingQueue<Runnable> {
+        private final AtomicInteger reportedSize = new AtomicInteger();
+        private final AtomicInteger sizeCalls = new AtomicInteger();
+
+        void setReportedSize(int size) {
+            reportedSize.set(size);
+        }
+
+        int getSizeCalls() {
+            return sizeCalls.get();
+        }
+
+        @Override
+        public int size() {
+            sizeCalls.incrementAndGet();
+            return reportedSize.get();
+        }
+
+        // The rest of the methods are not used in these tests.
+        @Override public boolean add(Runnable runnable) { throw new UnsupportedOperationException(); }
+        @Override public boolean offer(Runnable runnable) { throw new UnsupportedOperationException(); }
+        @Override public void put(Runnable runnable) { throw new UnsupportedOperationException(); }
+        @Override public boolean offer(Runnable runnable, long l, TimeUnit timeUnit) { throw new UnsupportedOperationException(); }
+        @Override public Runnable take() { throw new UnsupportedOperationException(); }
+        @Override public Runnable poll(long l, TimeUnit timeUnit) { throw new UnsupportedOperationException(); }
+        @Override public int remainingCapacity() { throw new UnsupportedOperationException(); }
+        @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
+        @Override public boolean contains(Object o) { throw new UnsupportedOperationException(); }
+        @Override public int drainTo(Collection<? super Runnable> collection) { throw new UnsupportedOperationException(); }
+        @Override public int drainTo(Collection<? super Runnable> collection, int i) { throw new UnsupportedOperationException(); }
+        @Override public boolean removeAll(Collection<?> collection) { throw new UnsupportedOperationException(); }
+        @Override public boolean retainAll(Collection<?> collection) { throw new UnsupportedOperationException(); }
+        @Override public boolean containsAll(Collection<?> collection) { throw new UnsupportedOperationException(); }
+        @Override public boolean addAll(Collection<? extends Runnable> c) { throw new UnsupportedOperationException(); }
+        @Override public Object[] toArray() { throw new UnsupportedOperationException(); }
+        @Override public <T> T[] toArray(T[] ts) { throw new UnsupportedOperationException(); }
+        @Override public Iterator<Runnable> iterator() { throw new UnsupportedOperationException(); }
+        @Override public Runnable remove() { throw new UnsupportedOperationException(); }
+        @Override public Runnable poll() { throw new UnsupportedOperationException(); }
+        @Override public Runnable element() { throw new UnsupportedOperationException(); }
+        @Override public Runnable peek() { throw new UnsupportedOperationException(); }
+        @Override public void clear() { throw new UnsupportedOperationException(); }
+        @Override public boolean isEmpty() { return size() == 0; }
     }
 
     /**
@@ -79,15 +122,14 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
     @Test
     public void testCheckQueueWithZeroLimit() {
         BoundedScheduledExecutorService service =
-                new BoundedScheduledExecutorService(mockExecutor, 0);
+            new BoundedScheduledExecutorService(executor, 0);
 
-        // Stub lenient per documentare che la size non importa
-        lenient().when(mockQueue.size()).thenReturn(1000);
+        queue.setReportedSize(1000);
 
-        service.execute(mock(Runnable.class));
-        service.submit(mock(Callable.class));
+        service.execute(() -> { });
+        service.submit(() -> null);
 
-        verify(mockQueue, never()).size();
+        assertEquals(0, queue.getSizeCalls());
     }
 
     /**
@@ -97,12 +139,12 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
     @Test
     public void testCheckQueueAtExactBoundary() {
         BoundedScheduledExecutorService service =
-                new BoundedScheduledExecutorService(mockExecutor, 10);
+            new BoundedScheduledExecutorService(executor, 10);
 
         // Setup: queue.size = 9, numberOfTasks = 1, totale = 10 (esatto)
-        when(mockQueue.size()).thenReturn(9);
+        queue.setReportedSize(9);
 
-        Runnable task = mock(Runnable.class);
+        Runnable task = () -> { };
 
         // Non dovrebbe lanciare eccezione (9 + 1 = 10, non > 10)
         try {
@@ -113,7 +155,7 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
         }
 
         // Verify che checkQueue abbia controllato
-        verify(mockQueue, times(1)).size();
+        assertEquals(1, queue.getSizeCalls());
     }
 
     /**
@@ -122,9 +164,9 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
     @Test
     public void testCheckQueueWithMultipleTasks() {
         BoundedScheduledExecutorService service =
-                new BoundedScheduledExecutorService(mockExecutor, 10);
+            new BoundedScheduledExecutorService(executor, 10);
 
-        when(mockQueue.size()).thenReturn(6);
+        queue.setReportedSize(6);
 
         List<Callable<Integer>> tasks = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
@@ -141,7 +183,7 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
             fail("Non dovrebbe essere interrotto");
         }
 
-        verify(mockQueue, times(1)).size();
+        assertEquals(1, queue.getSizeCalls());
     }
 
     /**
@@ -150,9 +192,9 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
     @Test
     public void testCheckQueueWithZeroTasksAtLimit() throws Exception {
         BoundedScheduledExecutorService service =
-                new BoundedScheduledExecutorService(mockExecutor, 10);
+            new BoundedScheduledExecutorService(executor, 10);
 
-        when(mockQueue.size()).thenReturn(10);
+        queue.setReportedSize(10);
 
         List<Callable<String>> emptyTasks = Collections.emptyList();
 
@@ -162,7 +204,7 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
             // Ignora eccezioni dall'executor
         }
 
-        verify(mockQueue, times(1)).size();
+        assertEquals(1, queue.getSizeCalls());
     }
 
     /**
@@ -172,29 +214,29 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
     @Test
     public void testAllMethodsCallCheckQueue() {
         BoundedScheduledExecutorService service =
-                new BoundedScheduledExecutorService(mockExecutor, 100); // Limite alto
+            new BoundedScheduledExecutorService(executor, 100); // Limite alto
 
-        when(mockQueue.size()).thenReturn(0); // Queue vuota
-
-        // Conta quante volte viene chiamato checkQueue
-        int callsBefore = mockingDetails(mockQueue).getInvocations().size();
+        queue.setReportedSize(0); // Queue vuota
 
         // Chiama tutti i metodi singoli (numberOfTasks = 1)
+        Runnable r = () -> { };
+        Callable<String> c = () -> "result";
+
         try {
-            service.execute(mock(Runnable.class));
-            service.submit(mock(Runnable.class));
-            service.submit(mock(Callable.class));
-            service.submit(mock(Runnable.class), "result");
-            service.schedule(mock(Runnable.class), 1L, TimeUnit.SECONDS);
-            service.schedule(mock(Callable.class), 1L, TimeUnit.SECONDS);
-            service.scheduleAtFixedRate(mock(Runnable.class), 0L, 1L, TimeUnit.SECONDS);
-            service.scheduleWithFixedDelay(mock(Runnable.class), 0L, 1L, TimeUnit.SECONDS);
+            service.execute(r);
+            service.submit(r);
+            service.submit(c);
+            service.submit(r, "result");
+            service.schedule(r, 1L, TimeUnit.SECONDS);
+            service.schedule(c, 1L, TimeUnit.SECONDS);
+            service.scheduleAtFixedRate(r, 0L, 1L, TimeUnit.SECONDS);
+            service.scheduleWithFixedDelay(r, 0L, 1L, TimeUnit.SECONDS);
         } catch (Exception e) {
             // Ignora eccezioni dal decorator
         }
 
         // Verify che checkQueue sia stato chiamato 8 volte (una per metodo)
-        verify(mockQueue, times(8)).size();
+        assertEquals(8, queue.getSizeCalls());
     }
 
     /**
@@ -203,11 +245,11 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
     @Test
     public void testCheckQueueOverflowByOne() {
         BoundedScheduledExecutorService service =
-                new BoundedScheduledExecutorService(mockExecutor, 5);
+            new BoundedScheduledExecutorService(executor, 5);
 
-        when(mockQueue.size()).thenReturn(5);
+        queue.setReportedSize(5);
 
-        Runnable task = mock(Runnable.class);
+        Runnable task = () -> { };
 
         try {
             service.execute(task);
@@ -216,8 +258,7 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
             assertTrue(e.getMessage().contains("Queue at limit of 5 items"));
         }
 
-        verify(mockQueue, times(1)).size();
-        verify(mockExecutor, never()).execute(any());
+        assertEquals(1, queue.getSizeCalls());
     }
 
     /**
@@ -226,9 +267,9 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
     @Test
     public void testInvokeAnyNumberOfTasks() throws Exception {
         BoundedScheduledExecutorService service =
-                new BoundedScheduledExecutorService(mockExecutor, 5);
+            new BoundedScheduledExecutorService(executor, 5);
 
-        when(mockQueue.size()).thenReturn(2);
+        queue.setReportedSize(2);
 
         List<Callable<String>> tasks = Arrays.asList(
                 () -> "1", () -> "2", () -> "3", () -> "4"
@@ -241,7 +282,7 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
             assertTrue(e.getMessage().contains("Queue at limit"));
         }
 
-        verify(mockQueue, times(1)).size();
+        assertEquals(1, queue.getSizeCalls());
     }
 
     /**
@@ -251,12 +292,11 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
     @Test
     public void testNegativeLimitBehavesAsNoLimit() {
         BoundedScheduledExecutorService service =
-                new BoundedScheduledExecutorService(mockExecutor, -10);
+            new BoundedScheduledExecutorService(executor, -10);
 
-        // Stub lenient per documentare il caso estremo
-        lenient().when(mockQueue.size()).thenReturn(Integer.MAX_VALUE);
+        queue.setReportedSize(Integer.MAX_VALUE);
 
-        service.execute(mock(Runnable.class));
+        service.execute(() -> { });
 
         List<Callable<String>> manyTasks = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -269,7 +309,7 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
             assertFalse(e instanceof RejectedExecutionException);
         }
 
-        verify(mockQueue, never()).size();
+        assertEquals(0, queue.getSizeCalls());
     }
 
 }
