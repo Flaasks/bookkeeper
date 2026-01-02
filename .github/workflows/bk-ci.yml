@@ -85,7 +85,10 @@ jobs:
 
       - name: Build and compile
         run: |
-          mvn -B -pl bookkeeper-common -am clean compile test-compile
+          # Build full reactor to install SNAPSHOT deps locally
+          mvn -B -DskipTests clean install
+          # Pre-compile target module to speed subsequent steps
+          mvn -B -pl bookkeeper-common -am compile test-compile
 
       - name: Run unit tests
         continue-on-error: false
