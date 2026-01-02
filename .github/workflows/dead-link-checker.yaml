@@ -18,6 +18,8 @@ name: Dead link checker
 
 on:
   push:
+    branches:
+      - 'workflow-disabled-*'  # Disabled for university project
   pull_request:
     branches:
       - master

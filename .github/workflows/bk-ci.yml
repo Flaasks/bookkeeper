@@ -36,6 +36,7 @@ jobs:
           mvn -B -pl bookkeeper-common -am clean compile test-compile
 
       - name: Run unit tests
+        continue-on-error: false
         run: |
           mvn -B -pl bookkeeper-common \
             -DtrimStackTrace=false \
@@ -43,11 +44,15 @@ jobs:
             test
 
       - name: Generate JaCoCo coverage report
+        if: always()
+        continue-on-error: true
         run: |
           mvn -B -pl bookkeeper-common \
             org.jacoco:jacoco-maven-plugin:report
 
       - name: Run PiTest mutation testing
+        if: always()
+        continue-on-error: true
         run: |
           mvn -B -pl bookkeeper-common \
             org.pitest:pitest-maven:mutationCoverage \
@@ -63,6 +68,7 @@ jobs:
             bookkeeper-common/target/surefire-reports/**
             bookkeeper-common/target/**/*.log
           retention-days: 7
+          if-no-files-found: warn
 
       - name: Upload JaCoCo coverage reports
         if: always()
@@ -71,6 +77,7 @@ jobs:
           name: jacoco-reports
           path: |
             bookkeeper-common/target/site/jacoco/**
+                    if-no-files-found: warn
           retention-days: 7
 
       - name: Upload PiTest mutation reports
@@ -80,6 +87,7 @@ jobs:
           name: pitest-reports
           path: |
             bookkeeper-common/target/pit-reports/**
+                    if-no-files-found: warn
           retention-days: 7
 
       # Pubblica risultati test come commento (solo per PR)

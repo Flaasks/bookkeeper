@@ -21,8 +21,10 @@ name: BookKeeper StreamStorage Python Client
 on:
   pull_request:
     branches:
-      - master
-      - branch-*
+      - 'workflow-disabled-*'  # Disabled for university project
+  push:
+    branches:
+      - 'workflow-disabled-*'  # Disabled for university project
     paths:
       - 'stream/**'
       - '.github/workflows/bk-streamstorage-python.yml'
