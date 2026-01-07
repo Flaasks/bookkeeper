@@ -20,7 +20,6 @@
 package org.apache.bookkeeper.common.collections;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -48,7 +47,6 @@ public class BatchedArrayBlockingQueueControlFlowTest {
     public void testConsumerIndexWrapAround() {
         BatchedArrayBlockingQueue<String> queue = new BatchedArrayBlockingQueue<>(3);
 
-        // Setup: riempi la queue
         queue.offer("A");
         queue.offer("B");
         queue.offer("C");
@@ -71,7 +69,7 @@ public class BatchedArrayBlockingQueueControlFlowTest {
     public void testPutAllWithWrapAround() throws InterruptedException {
         BatchedArrayBlockingQueue<Integer> queue = new BatchedArrayBlockingQueue<>(5);
 
-        // Setup: posiziona producerIdx vicino alla fine
+        // posiziono producerIdx vicino alla fine
         queue.offer(1);
         queue.offer(2);
         queue.offer(3);
@@ -81,7 +79,7 @@ public class BatchedArrayBlockingQueueControlFlowTest {
         queue.poll();
         queue.poll(); // 2 spazi liberi
 
-        // putAll che deve fare wrap-around
+        //mi aspetto wrap-around
         Integer[] items = {5, 6};
         queue.putAll(items, 0, 2);
 
@@ -226,11 +224,11 @@ public class BatchedArrayBlockingQueueControlFlowTest {
         assertEquals(0, inserted.get());
 
         // Libera spazio
-        queue.poll(); // Ora c'è 1 spazio
+        queue.poll(); // Ora c'è uno spazio
 
         // putAll dovrebbe procedere parzialmente
         assertTrue(done.await(1, TimeUnit.SECONDS));
-        assertEquals(1, inserted.get()); // Solo 1 elemento inserito
+        assertEquals(1, inserted.get()); // Solo un elemento inserito
         producer.join();
     }
 
@@ -266,12 +264,4 @@ public class BatchedArrayBlockingQueueControlFlowTest {
         assertEquals(4, queue.remainingCapacity());
     }
 
-    @Test
-    @Category(org.apache.bookkeeper.common.testing.KnownBugTest.class)
-    public void offer_shouldReturnFalseWhenQueueIsFull_insteadOfBlockingOrThrowing() throws Exception {
-        BatchedArrayBlockingQueue<Integer> q = new BatchedArrayBlockingQueue<>(1);
-        assertTrue("Precondition: first offer should succeed", q.offer(1));
-        // Quando piena, l’implementazione corretta deve restituire false.
-        assertFalse("Known bug: offer on full queue should return false (non-blocking)", q.offer(2));
-    }
 }

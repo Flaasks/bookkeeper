@@ -59,7 +59,6 @@ public class BatchedArrayBlockingQueueCategoryPartitionTest {
 
     /**
      * TEST 2: Categoria OPERATION_TYPE (batch) + QUEUE_STATE (parzialmente piena) + DATA (array valido)
-     * CORREZIONE: Fix del test per putAll parziale
      */
     @Test
     public void testBatchOperationsOnPartiallyFilledQueue() throws InterruptedException {
@@ -86,19 +85,18 @@ public class BatchedArrayBlockingQueueCategoryPartitionTest {
         assertArrayEquals("Elementi drenati dovrebbero essere in ordine FIFO",
                 new Integer[]{1, 2, 3, 4, 5}, buffer);
 
-        // Test putAll quando non c'è spazio per tutti
+
         // Queue ha 2 elementi, capacità 10, quindi spazio per 8
-        // Ma stiamo inserendo solo 6 elementi
+        // Inserisco 6 elementi
         List<Integer> sixElements = Arrays.asList(8, 9, 10, 11, 12, 13);
         int insertedPartial = queue.putAll(sixElements);
 
-        // CORREZIONE: Dovrebbe inserire tutti e 6 gli elementi (c'è spazio per 8)
-        assertEquals("Dovrebbe inserire tutti i 6 elementi (spazio disponibile: 8)",
+        assertEquals("Dovrebbe inserire tutti e 6 gli elementi",
                 6, insertedPartial);
         assertEquals("Size dovrebbe essere 8", 8, queue.size());
 
-        // Test aggiuntivo: putAll quando davvero non c'è spazio per tutti
-        // Aggiungiamo altri elementi per testare il caso limite
+        // putAll quando non c'è spazio per tutti
+        // Aggiungo altri elementi per testare il caso limite
         List<Integer> tooMany = Arrays.asList(14, 15, 16, 17, 18);
         int insertedLimited = queue.putAll(tooMany);
 
@@ -124,7 +122,7 @@ public class BatchedArrayBlockingQueueCategoryPartitionTest {
         assertTrue("Dovrebbe aspettare almeno 90ms (tolleranza)", elapsed >= 90);
         assertTrue("Non dovrebbe aspettare molto più di 100ms", elapsed < 200);
 
-        // Riempi la queue
+        // Riempimento della queue
         for (int i = 0; i < 5; i++) {
             queue.offer("Item" + i);
         }
@@ -141,7 +139,7 @@ public class BatchedArrayBlockingQueueCategoryPartitionTest {
         assertFalse("Offer con timeout 0 su queue piena dovrebbe ritornare subito false",
                 queue.offer("Extra2", 0, TimeUnit.MILLISECONDS));
 
-        // Test null handling - modifichiamo per gestire entrambi i casi
+        // Test null handling - modifico per gestire entrambi i casi
         queue.poll(); // libera spazio
 
         // Test più robusto per null
@@ -150,7 +148,7 @@ public class BatchedArrayBlockingQueueCategoryPartitionTest {
             nullAccepted = queue.offer(null);
             if (nullAccepted) {
                 assertEquals("Se null è accettato, size dovrebbe aumentare", 5, queue.size());
-                // Rimuovi il null per non influenzare altri test
+                // Rimuovo il null per non influenzare altri test
                 queue.poll();
             }
         } catch (NullPointerException e) {
@@ -165,9 +163,9 @@ public class BatchedArrayBlockingQueueCategoryPartitionTest {
     public void constructor_shouldRejectZeroCapacity() {
         try {
             new BatchedArrayBlockingQueue<>(0);
-            fail("Known bug: capacity==0 should throw IllegalArgumentException");
+            fail("Known bug: capacity==0 dovrebbe chiamare IllegalArgumentException");
         } catch (IllegalArgumentException expected) {
-            // test passed
+            // test passato
         }
     }
 }

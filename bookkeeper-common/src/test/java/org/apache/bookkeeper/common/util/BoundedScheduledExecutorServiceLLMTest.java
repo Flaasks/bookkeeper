@@ -36,7 +36,6 @@ import static org.mockito.Mockito.*;
  */
 public class BoundedScheduledExecutorServiceLLMTest {
     static {
-        // Enable ByteBuddy experimental mode to allow Mockito inline on Java 21.
         System.setProperty("net.bytebuddy.experimental", "true");
     }
 

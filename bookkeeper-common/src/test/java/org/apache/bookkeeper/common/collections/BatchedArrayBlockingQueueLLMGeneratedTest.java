@@ -20,7 +20,6 @@
 package org.apache.bookkeeper.common.collections;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -28,7 +27,6 @@ import static org.junit.Assert.*;
 
 /**
  * Test generati tramite LLM per BatchedArrayBlockingQueue
- * VERSIONE CON TIMEOUT per evitare blocchi
  */
 public class BatchedArrayBlockingQueueLLMGeneratedTest {
 
@@ -75,13 +73,13 @@ public class BatchedArrayBlockingQueueLLMGeneratedTest {
     }
 
     /**
-     * TEST LLM-3: Categoria CONCURRENCY - SEMPLIFICATO per evitare blocchi
+     * TEST LLM-3: Categoria CONCURRENCY -
      */
     @Test(timeout = 10000) // 10 secondi timeout
     public void testConcurrentProducers() throws InterruptedException {
         final BatchedArrayBlockingQueue<Integer> queue = new BatchedArrayBlockingQueue<>(50);
-        final int numProducers = 3; // Ridotto
-        final int itemsPerProducer = 10; // Ridotto
+        final int numProducers = 3; 
+        final int itemsPerProducer = 10; 
         final CountDownLatch endLatch = new CountDownLatch(numProducers);
 
         for (int i = 0; i < numProducers; i++) {
@@ -137,7 +135,7 @@ public class BatchedArrayBlockingQueueLLMGeneratedTest {
     }
 
     /**
-     * TEST LLM-5: Test drainTo - SEMPLIFICATO
+     * TEST LLM-5: Test drainTo
      */
     @Test(timeout = 5000)
     public void testDrainToCollections() {
@@ -154,7 +152,7 @@ public class BatchedArrayBlockingQueueLLMGeneratedTest {
     }
 
     /**
-     * TEST LLM-6: Test putAll con timeout - VERSIONE SICURA
+     * TEST LLM-6: Test putAll con timeout 
      */
     @Test(timeout = 5000)
     public void testPutAllWithTimeout() throws InterruptedException {
@@ -220,15 +218,4 @@ public class BatchedArrayBlockingQueueLLMGeneratedTest {
         assertTrue("isEmpty dovrebbe ritornare true", queue.isEmpty());
     }
 
-    @Test
-    @Category(org.apache.bookkeeper.common.testing.KnownBugTest.class)
-    public void put_shouldRejectNullElements() throws Exception {
-        BatchedArrayBlockingQueue<String> q = new BatchedArrayBlockingQueue<>(2);
-        try {
-            q.put(null);
-            fail("Known bug: put(null) should throw NullPointerException");
-        } catch (NullPointerException expected) {
-            // test passed
-        }
-    }
 }

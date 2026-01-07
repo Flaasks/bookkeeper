@@ -33,12 +33,12 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Test di alta qualità per BoundedScheduledExecutorService con Mockito per verificare le
+ * Test di BoundedScheduledExecutorService con Mockito per verificare le
  * interazioni sugli executor, usando una coda regolabile per controllare il flow.
  */
 public class BoundedScheduledExecutorServiceMockTest {
     static {
-        // Enable ByteBuddy experimental mode to allow Mockito inline on Java 21.
+        // uso ByteBuddy experimental mode per usare Mockito con Java 21.
         System.setProperty("net.bytebuddy.experimental", "true");
     }
 
@@ -76,14 +76,6 @@ public class BoundedScheduledExecutorServiceMockTest {
 
         int getScheduleCalls() {
             return scheduleCalls.get();
-        }
-
-        int getScheduleAtFixedRateCalls() {
-            return scheduleAtFixedRateCalls.get();
-        }
-
-        int getScheduleWithFixedDelayCalls() {
-            return scheduleWithFixedDelayCalls.get();
         }
 
         int getInvokeAllCalls() {
@@ -224,7 +216,7 @@ public class BoundedScheduledExecutorServiceMockTest {
      */
     @Test
     public void testSubmitCallableAtExactLimit() {
-        // Setup: la coda ha 9 elementi. L'aggiunta di un task la porta a 10 (il limite).
+        // Setup: la coda ha 9 elementi. L'aggiunta di un task la porta a 10 (il limite)
         queue.setReportedSize(9);
 
         Callable<String> task = mock(Callable.class);
@@ -269,7 +261,7 @@ public class BoundedScheduledExecutorServiceMockTest {
     }
 
     /**
-     * TEST 5: Categoria BATCH_SIZE (multipli task) - solo caso di fallimento.
+     * TEST 5: Categoria BATCH_SIZE (multipli task) 
      */
     @Test
     public void testInvokeAllFailsWithFullQueue() throws InterruptedException {
@@ -290,7 +282,7 @@ public class BoundedScheduledExecutorServiceMockTest {
 
     /**
      * TEST 6: Test aggiuntivo per il caso invokeAny con collezione non vuota,
-     * verificando solo il caso di fallimento per evitare il loop.
+        * verificando solo il caso di fallimento per evitare il loop
      */
     @Test
     public void testInvokeAnyFailsWithFullQueue() throws Exception {
@@ -311,7 +303,7 @@ public class BoundedScheduledExecutorServiceMockTest {
 
     /**
      * TEST 7: Test invokeAny con collezione vuota per verificare il comportamento
-     * della classe quando il numero di task è zero.
+     * della classe quando il numero di task è zero
      */
     @Test
     public void testInvokeAnyWithEmptyCollection() throws Exception {
@@ -331,7 +323,7 @@ public class BoundedScheduledExecutorServiceMockTest {
 
     /**
      * TEST 8: Test aggiuntivo che verifica il comportamento di invokeAny
-     * con una collezione vuota quando maxTasksInQueue è 0.
+     * con una collezione vuota quando maxTasksInQueue è 0
      */
     @Test
     public void testInvokeAnyWithEmptyCollectionAndZeroLimit() throws Exception {

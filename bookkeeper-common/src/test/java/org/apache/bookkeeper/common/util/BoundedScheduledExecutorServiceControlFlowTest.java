@@ -117,7 +117,6 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
 
     /**
      * CF-TEST-1: Branch maxTasksInQueue = 0 (no limit)
-     * VERSIONE CON LENIENT
      */
     @Test
     public void testCheckQueueWithZeroLimit() {
@@ -133,28 +132,26 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
     }
 
     /**
-     * CF-TEST-2: Branch (queue.size() + numberOfTasks) = maxTasksInQueue esatto
-     * VERSIONE SEMPLIFICATA - focus solo sul control flow
+     * CF-TEST-2: Branch (queue.size() + numberOfTasks) = maxTasksInQueue 
      */
     @Test
     public void testCheckQueueAtExactBoundary() {
         BoundedScheduledExecutorService service =
             new BoundedScheduledExecutorService(executor, 10);
 
-        // Setup: queue.size = 9, numberOfTasks = 1, totale = 10 (esatto)
+        // Setup: queue.size = 9, numberOfTasks = 1, totale = 10 
         queue.setReportedSize(9);
 
         Runnable task = () -> { };
 
-        // Non dovrebbe lanciare eccezione (9 + 1 = 10, non > 10)
         try {
             service.schedule(task, 1L, TimeUnit.SECONDS);
-            // OK - non ha lanciato eccezione
+
         } catch (RejectedExecutionException e) {
             fail("Non dovrebbe lanciare eccezione al boundary esatto");
         }
 
-        // Verify che checkQueue abbia controllato
+        // Verifica che checkQueue abbia controllato
         assertEquals(1, queue.getSizeCalls());
     }
 
@@ -209,7 +206,6 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
 
     /**
      * CF-TEST-5: Verifica che ogni metodo chiami checkQueue con numberOfTasks = 1
-     * VERSIONE SEMPLIFICATA
      */
     @Test
     public void testAllMethodsCallCheckQueue() {
@@ -287,7 +283,6 @@ public class BoundedScheduledExecutorServiceControlFlowTest {
 
     /**
      * CF-TEST-8: Test ramo maxTasksInQueue negativo
-     * VERSIONE CON LENIENT
      */
     @Test
     public void testNegativeLimitBehavesAsNoLimit() {
