@@ -90,13 +90,13 @@ jobs:
           # Pre-compile target module to speed subsequent steps
           mvn -B -pl bookkeeper-common -am compile test-compile
 
-      - name: Run unit tests
+      - name: Run tests (unit + integration)
         continue-on-error: false
         run: |
           mvn -B -pl bookkeeper-common \
             -DtrimStackTrace=false \
             -Dsurefire.printSummary=true \
-            test
+            verify
 
       - name: Generate JaCoCo coverage report
         if: always()
