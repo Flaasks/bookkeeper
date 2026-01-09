@@ -1,2 +1,2 @@
-BatchedArrayBlockingQueue
-BoundedScheduledExecutorService
+bookkeeper-common/src/main/java/org/apache/bookkeeper/common/collections/BatchedArrayBlockingQueue
+bookkeeper-common/src/main/java/org/apache/bookkeeper/common/util/BoundedScheduledExecutorService
