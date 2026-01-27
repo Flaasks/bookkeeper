@@ -111,7 +111,10 @@ jobs:
         run: |
           mvn -B -pl bookkeeper-common \
             org.pitest:pitest-maven:mutationCoverage \
-            -Dthreads=2
+            -DtargetClasses=org.apache.bookkeeper.common.collections.RecyclableArrayList,org.apache.bookkeeper.common.util.MathUtils \
+            -DtargetTests='org.apache.bookkeeper.common.collections.*,org.apache.bookkeeper.common.util.*' \
+            -Dthreads=2 \
+            -DoutputFormats=HTML,CSV
 
       # Upload artifacts (sempre, anche in caso di fallimento)
       - name: Upload Surefire test reports

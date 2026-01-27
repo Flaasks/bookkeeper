@@ -143,6 +143,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
         <configuration>
+          <argLine>${argLine} -Xmx1024m</argLine>
           <excludedGroups>${known.bug.group}</excludedGroups>
           <testFailureIgnore>true</testFailureIgnore>
         </configuration>
